@@ -1,4 +1,5 @@
 ---
+import Header from "../components/Header.astro";
 import "../styles/global.css";
 const { title = "My Astro Site", description = "Production grade Astro website" } = Astro.props;
 ---
@@ -21,16 +22,7 @@ const { title = "My Astro Site", description = "Production grade Astro website" 
   </head>
   <body class="bg-gray-50 text-gray-900">
     <!-- Header -->
-    <header class="bg-white shadow">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold">My Astro Site</h1>
-        <nav class="space-x-4">
-          <a href="/" class="hover:text-blue-600">Home</a>
-          <a href="/about" class="hover:text-blue-600">About</a>
-          <a href="/contact" class="hover:text-blue-600">Contact</a>
-        </nav>
-      </div>
-    </header>
+    <Header />
 
     <!-- Main -->
     <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-12 gap-6">
