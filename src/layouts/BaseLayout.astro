@@ -1,0 +1,63 @@
+---
+import "../styles/global.css";
+const { title = "My Astro Site", description = "Production grade Astro website" } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <!-- Google Ads / Analytics -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+      {`(window.adsbygoogle = window.adsbygoogle || []).push({
+        google_ad_client: "ca-pub-XXXXXXX", // replace with your AdSense ID
+        enable_page_level_ads: true
+      });`}
+    </script>
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">My Astro Site</h1>
+        <nav class="space-x-4">
+          <a href="/" class="hover:text-blue-600">Home</a>
+          <a href="/about" class="hover:text-blue-600">About</a>
+          <a href="/contact" class="hover:text-blue-600">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-12 gap-6">
+      <!-- Content -->
+      <section class="col-span-9">
+        <slot />
+      </section>
+
+      <!-- Sidebar Ads -->
+      <aside class="col-span-3">
+        <div class="mb-6">
+          <!-- Google AdSense block -->
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-XXXXXXX"
+               data-ad-slot="1234567890"
+               data-ad-format="auto"></ins>
+          <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
+        © {new Date().getFullYear()} My Astro Site. All rights reserved.
+      </div>
+    </footer>
+  </body>
+</html>
