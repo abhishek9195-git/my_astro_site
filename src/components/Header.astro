@@ -5,7 +5,7 @@ import "../styles/global.css";
 <header class="bg-white shadow sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between py-4">
-      <!-- Logo (Left) -->
+      <!-- Logo -->
       <div class="flex-shrink-0">
         <a href="/" class="text-2xl font-bold text-blue-700">MySite</a>
       </div>
@@ -14,38 +14,43 @@ import "../styles/global.css";
       <nav class="hidden md:flex flex-1 justify-center space-x-6">
         <a href="/" class="text-gray-700 hover:text-blue-600 transition-colors">Home</a>
 
-        <!-- Mega Dropdown -->
-        <div class="relative group">
-          <button class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
+        <!-- Mega Dropdown (Click-to-open) -->
+        <div class="relative">
+          <!-- Trigger -->
+          <button id="markets-btn" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
             Markets
-            <svg class="ml-1 h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-transform transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="ml-1 h-4 w-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           <!-- Mega Menu Panel -->
-          <div class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-[600px] bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 p-6 grid grid-cols-3 gap-6">
+          <div id="markets-menu" class="hidden absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
+                      w-[650px] bg-white rounded-xl shadow-2xl z-50 
+                      border-t border-gray-200 p-8 grid grid-cols-3 gap-8">
             <!-- Column 1 -->
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Equities</h3>
-              <a href="/markets/stocks" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">📈 Stocks</a>
-              <a href="/markets/ipo" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">🚀 IPOs</a>
-              <a href="/markets/indices" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">📊 Indices</a>
+              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Equities</h3>
+              <a href="/markets/stocks" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">📈 <span class="ml-2">Stocks</span></a>
+              <a href="/markets/ipo" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🚀 <span class="ml-2">IPOs</span></a>
+              <a href="/markets/indices" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">📊 <span class="ml-2">Indices</span></a>
             </div>
+
             <!-- Column 2 -->
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Investments</h3>
-              <a href="/markets/mutual-funds" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">💰 Mutual Funds</a>
-              <a href="/markets/etfs" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">📦 ETFs</a>
-              <a href="/markets/bonds" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">🏦 Bonds</a>
+              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Investments</h3>
+              <a href="/markets/mutual-funds" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">💰 <span class="ml-2">Mutual Funds</span></a>
+              <a href="/markets/etfs" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">📦 <span class="ml-2">ETFs</span></a>
+              <a href="/markets/bonds" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🏦 <span class="ml-2">Bonds</span></a>
             </div>
+
             <!-- Column 3 -->
             <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">Commodities</h3>
-              <a href="/markets/gold" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">🥇 Gold</a>
-              <a href="/markets/silver" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">🥈 Silver</a>
-              <a href="/markets/oil" class="block px-2 py-1 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded">🛢️ Oil</a>
+              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Commodities</h3>
+              <a href="/markets/gold" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🥇 <span class="ml-2">Gold</span></a>
+              <a href="/markets/silver" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🥈 <span class="ml-2">Silver</span></a>
+              <a href="/markets/oil" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🛢️ <span class="ml-2">Oil</span></a>
             </div>
           </div>
         </div>
@@ -92,7 +97,7 @@ import "../styles/global.css";
       <details>
         <summary class="cursor-pointer text-gray-700 hover:text-blue-600 flex items-center">
           Markets
-          <svg class="ml-1 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="ml-1 h-4 w-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19 9l-7 7-7-7" />
           </svg>
@@ -106,6 +111,7 @@ import "../styles/global.css";
       <a href="/gold-rates" class="text-gray-700 hover:text-blue-600">Gold Rates</a>
       <a href="/news" class="text-gray-700 hover:text-blue-600">News</a>
       <a href="/contact" class="text-gray-700 hover:text-blue-600">Contact</a>
+
       <!-- Mobile Search -->
       <form action="/search" method="GET" class="mt-4">
         <input 
@@ -119,10 +125,69 @@ import "../styles/global.css";
   </div>
 </header>
 
+
 <script>
-  const btn = document.getElementById("menu-btn")!;
-  const menu = document.getElementById("mobile-menu")!;
-  btn.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-  });
+  // Mobile menu toggle
+  const btn = document.getElementById("menu-btn");
+  const menu = document.getElementById("mobile-menu");
+  if (btn && menu) {
+    btn.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
+    });
+  }
+
+  // Mega menu toggle (click-to-open)
+  const marketsBtn = document.getElementById("markets-btn");
+  const marketsMenu = document.getElementById("markets-menu");
+  const marketsIcon = marketsBtn ? marketsBtn.querySelector("svg") : null;
+
+  if (marketsBtn && marketsMenu) {
+    marketsBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // prevent bubbling
+      const isHidden = marketsMenu.classList.contains("hidden");
+      marketsMenu.classList.toggle("hidden");
+
+      // Rotate icon when menu is open
+      if (marketsIcon) {
+        if (isHidden) {
+          marketsIcon.classList.add("rotate-180");
+        } else {
+          marketsIcon.classList.remove("rotate-180");
+        }
+      }
+    });
+
+    // Close mega menu when clicking outside
+    document.addEventListener("click", (e: any) => {
+      if (!marketsBtn.contains(e.target) && !marketsMenu.contains(e.target)) {
+        marketsMenu.classList.add("hidden");
+        if (marketsIcon) {
+          marketsIcon.classList.remove("rotate-180");
+        }
+      }
+    });
+
+    // Close mega menu on Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        marketsMenu.classList.add("hidden");
+        if (marketsIcon) {
+          marketsIcon.classList.remove("rotate-180");
+        }
+      }
+    });
+  }
 </script>
+
+<style>
+  /* Rotate caret icon for mobile details when open */
+  #mobile-menu details[open] summary svg {
+    transform: rotate(180deg);
+    transition: transform 0.2s ease-in-out;
+  }
+
+  /* Ensure summary svg has smooth transition even when closed */
+  #mobile-menu summary svg {
+    transition: transform 0.2s ease-in-out;
+  }
+</style>
