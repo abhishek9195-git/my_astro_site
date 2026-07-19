@@ -1,0 +1,101 @@
+---
+import data from "../../data/data.json";
+import type { DataFile, Country, State, City, Price } from "../../types";
+
+// Cast JSON to typed object
+const typedData: DataFile = data;
+const { slug } = Astro.params;
+
+// Helpers
+function findEntity(slug: string, countries: Country[]): Country | State | City | null {
+  for (const country of countries) {
+    if (country.slug === slug) return country;
+
+    for (const state of country.states) {
+      if (state.slug === slug) return state;
+
+      for (const city of state.cities) {
+        if (city.slug === slug) return city;
+      }
+    }
+  }
+  return null;
+}
+
+function collectSlugs(countries: Country[]): string[] {
+  const slugs: string[] = [];
+  for (const country of countries) {
+    slugs.push(country.slug);
+    for (const state of country.states) {
+      slugs.push(state.slug);
+      for (const city of state.cities) {
+        slugs.push(city.slug);
+      }
+    }
+  }
+  return slugs;
+}
+
+// Entity lookup
+const entity = findEntity(slug, typedData.countries);
+const latestGold: Price | undefined = entity?.gold_prices?.slice(-1)[0];
+
+// Static paths
+export async function getStaticPaths() {
+  const slugs: string[] = [];
+  for (const country of data.countries) {
+    slugs.push(country.slug);
+    for (const state of country.states) {
+      slugs.push(state.slug);
+      for (const city of state.cities) {
+        slugs.push(city.slug);
+      }
+    }
+  }
+
+  return slugs.map((slug) => ({
+    params: { slug }
+  }));
+}
+---
+
+<html lang="en">
+  <body>
+    <h1>Gold Price in {entity?.name}</h1>
+
+    {latestGold ? (
+      <div>
+        <p><strong>Latest ({latestGold.date}):</strong></p>
+        <ul>
+          {entity?.gold_prices.map((price: Price) => (
+            <li>{price.carat}: ₹{price.price} ({price.unit})</li>
+          ))}
+        </ul>
+      </div>
+    ) : (
+      <p>No gold price data available.</p>
+    )}
+
+    <h2>Historical Data</h2>
+    <table border="1" cellpadding="6">
+      <thead>
+        <tr>
+          <th>Carat</th>
+          <th>Price</th>
+          <th>Unit</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {entity?.gold_prices.map((price: Price) => (
+          <tr>
+            <td>{price.carat}</td>
+            <td>₹{price.price}</td>
+            <td>{price.unit}</td>
+            <td>{price.date}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </body>
+</html>
