@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import data from "../../data/data.json";
 import type { DataFile, Country, State, City, Price } from "../../types";
 import GoldChart from "../../components/GoldChart.astro";
+import { getCollection, render } from "astro:content";
 
 const typedData: DataFile = data;
 const { slug } = Astro.params;
@@ -36,89 +37,27 @@ export async function getStaticPaths() {
   }
   return slugs.map((slug) => ({ params: { slug } }));
 }
+
+// Load Markdown content for this slug
+const seoContent = (await getCollection("gold-rates")).find((entry: any) => entry.data.slug === slug);
+// const allEntries = await getCollection("gold-rates");
+// console.log("==> allEntries", allEntries);
+
+let rendered;
+if (seoContent) {
+  rendered = await render(seoContent);
+  console.log('==> rendered', rendered)
+
+}
 ---
 
-<BaseLayout title={`Today’s Gold Rate in ${entity?.name} – 18k, 22k, 24k Prices`} description={`Check today’s gold price in ${entity?.name} for 18k, 22k, and 24k. Updated daily with live rates, charts, and FAQs.`}>
-  <!-- Breadcrumb Schema -->
-  <Fragment slot="head">
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://yoursite.com/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Gold Rates",
-          "item": "https://yoursite.com/gold-rates"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "Gold Rate in ${entity?.name}",
-          "item": "https://yoursite.com/gold-rates/${entity?.slug}"
-        }
-      ]
-    }
-    </script>
-  </Fragment>
-
-  <Fragment slot="head">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is today’s gold rate in {entity?.name}?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Today’s gold rate in {entity?.name} is ₹{latestGold?.price} for {latestGold?.carat} per {latestGold?.unit}."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How often are gold prices updated?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Prices are updated daily based on market fluctuations."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the difference between 22k and 24k gold?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "22k gold contains 91.6% pure gold mixed with alloys for durability, while 24k is 99.9% pure and softer."
-        }
-      }
-    ]
-  }
-  </script>
-</Fragment>
-
-
+<BaseLayout 
+  title={`Today’s Gold Rate in ${entity?.name} – 18k, 22k, 24k Prices`} 
+  description={`Check today’s gold price in ${entity?.name} for 18k, 22k, and 24k. Updated daily with live rates, charts, and FAQs.`}
+>
   <!-- Page Content -->
   <h1 class="text-3xl font-bold mb-2">Gold Price in {entity?.name} Today</h1>
   <p class="text-sm text-gray-600 mb-6">Updated on {latestGold?.date}</p>
-
-  <!-- Breadcrumb -->
-  <nav class="text-sm mb-4" aria-label="Breadcrumb">
-    <ol class="list-reset flex text-gray-600">
-      <li><a href="/" class="hover:text-blue-600">Home</a></li>
-      <li><span class="mx-2">›</span></li>
-      <li><a href="/gold-rates" class="hover:text-blue-600">Gold Rates</a></li>
-      <li><span class="mx-2">›</span></li>
-      <li class="text-gray-900 font-medium">{entity?.name}</li>
-    </ol>
-  </nav>
 
   <!-- Latest Prices -->
   <section class="bg-white shadow rounded-lg p-6 mb-8">
@@ -164,30 +103,24 @@ export async function getStaticPaths() {
     </table>
   </section>
 
-  <!-- SEO Content Block -->
-  <section class="bg-white shadow rounded-lg p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">Factors Affecting Gold Price in {entity?.name}</h2>
-    <p class="leading-relaxed text-gray-700">
-      Gold prices in {entity?.name} are influenced by international bullion markets,
-      currency exchange rates, local demand during festivals, and government import duties.
-      22k gold remains the most popular choice for jewelry, while 24k is preferred for investment.
-    </p>
-  </section>
+  <!-- Dynamic SEO Content from Markdown -->
+  {seoContent && rendered && (
+    <section class="bg-white shadow rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">{seoContent.data.title}</h2>
+      <rendered.Content /> <!-- ✅ renders Markdown body -->
+    </section>
+  )}
 
-  <!-- FAQs -->
-  <section class="bg-white shadow rounded-lg p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">FAQs</h2>
-    <details class="mb-3">
-      <summary class="cursor-pointer font-medium">What is today’s gold rate in {entity?.name}?</summary>
-      <p class="mt-2 text-gray-700">Today’s gold rate in {entity?.name} is ₹{latestGold?.price} for {latestGold?.carat} per {latestGold?.unit}.</p>
-    </details>
-    <details class="mb-3">
-      <summary class="cursor-pointer font-medium">How often are gold prices updated?</summary>
-      <p class="mt-2 text-gray-700">Prices are updated daily based on market fluctuations.</p>
-    </details>
-    <details>
-      <summary class="cursor-pointer font-medium">What is the difference between 22k and 24k gold?</summary>
-      <p class="mt-2 text-gray-700">22k gold contains 91.6% pure gold mixed with alloys for durability, while 24k is 99.9% pure and softer.</p>
-    </details>
-  </section>
+  <!-- FAQs from Markdown frontmatter -->
+  {seoContent?.data.faqs && seoContent.data.faqs.length > 0 && (
+    <section class="bg-white shadow rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">FAQs</h2>
+      {seoContent.data.faqs.map((faq) => (
+        <details class="mb-3">
+          <summary class="cursor-pointer font-medium">{faq.question}</summary>
+          <p class="mt-2 text-gray-700">{faq.answer}</p>
+        </details>
+      ))}
+    </section>
+  )}
 </BaseLayout>
