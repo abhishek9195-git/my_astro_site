@@ -1,5 +1,5 @@
 {
-  "country": {
+  "countries": [{
     "name": "India",
     "slug": "india",
     "gold_prices": [
@@ -103,5 +103,5 @@
   ]
 }
     ]
-  }
+  }]
 }

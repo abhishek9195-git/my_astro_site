@@ -32,5 +32,5 @@ export interface Country {
 }
 
 export interface DataFile {
-  country: Country;
+  countries: Country[];
 }

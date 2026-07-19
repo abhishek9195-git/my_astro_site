@@ -4,35 +4,55 @@ import type { DataFile, Country, State, City, Price } from "../../types";
 
 // Cast JSON to typed object
 const typedData: DataFile = data;
-
 const { slug } = Astro.params;
 
 // Helpers
-function findEntity(slug: string, country: Country): Country | State | City | null {
-  if (country.slug === slug) return country;
-  for (const state of country.states) {
-    if (state.slug === slug) return state;
-    for (const city of state.cities) {
-      if (city.slug === slug) return city;
+function findEntity(slug: string, countries: Country[]): Country | State | City | null {
+  for (const country of countries) {
+    if (country.slug === slug) return country;
+
+    for (const state of country.states) {
+      if (state.slug === slug) return state;
+
+      for (const city of state.cities) {
+        if (city.slug === slug) return city;
+      }
     }
   }
   return null;
 }
 
+function collectSlugs(countries: Country[]): string[] {
+  const slugs: string[] = [];
+  for (const country of countries) {
+    slugs.push(country.slug);
+    for (const state of country.states) {
+      slugs.push(state.slug);
+      for (const city of state.cities) {
+        slugs.push(city.slug);
+      }
+    }
+  }
+  return slugs;
+}
+
 // Entity lookup
-const entity = findEntity(slug, typedData.country);
+const entity = findEntity(slug, typedData.countries);
 const latestGold: Price | undefined = entity?.gold_prices?.slice(-1)[0];
 
 // Static paths
 export async function getStaticPaths() {
-  const typedData: DataFile = data;
-  const slugs: string[] = [typedData.country.slug];
-  for (const state of typedData.country.states) {
-    slugs.push(state.slug);
-    for (const city of state.cities) {
-      slugs.push(city.slug);
+  const slugs: string[] = [];
+  for (const country of data.countries) {
+    slugs.push(country.slug);
+    for (const state of country.states) {
+      slugs.push(state.slug);
+      for (const city of state.cities) {
+        slugs.push(city.slug);
+      }
     }
   }
+
   return slugs.map((slug) => ({
     params: { slug }
   }));
