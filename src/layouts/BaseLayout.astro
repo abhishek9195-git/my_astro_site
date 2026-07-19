@@ -2,6 +2,7 @@
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import "../styles/global.css";
+
 const { title = "My Astro Site", description = "Production grade Astro website" } = Astro.props;
 ---
 
@@ -20,6 +21,9 @@ const { title = "My Astro Site", description = "Production grade Astro website" 
         enable_page_level_ads: true
       });`}
     </script>
+
+    <!-- Page-specific head content -->
+    <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- Header -->
@@ -29,7 +33,7 @@ const { title = "My Astro Site", description = "Production grade Astro website" 
     <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-12 gap-6">
       <!-- Content -->
       <section class="col-span-9">
-        <slot />
+        <slot /> <!-- Page content -->
       </section>
 
       <!-- Sidebar Ads -->
