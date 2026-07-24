@@ -1,106 +1,216 @@
 ---
-import type { Price } from "../types";
-
 interface Props {
-  prices: Price[];
+  citySlug: string;
+  cityName?: string;
 }
 
-const { prices }: Props = Astro.props;
-
-const labels: string[] = prices.map((p) => p.date);
-const dataPoints: number[] = prices.map((p) => p.price);
+const { citySlug, cityName = "City" } = Astro.props;
 ---
 
-<!-- Chart Wrapper with fixed height -->
-<div class="w-full">
-  <!-- Toggle Buttons -->
-  <div class="flex justify-end mb-2 space-x-2">
-    <button id="btn7" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">7 Days</button>
-    <button id="btn30" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">30 Days</button>
+<div class="w-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:p-6">
+  <!-- Header & Timeframe Controls -->
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-900">
+        Gold Price Trend ({cityName})
+      </h3>
+      <p class="text-sm text-gray-500">Historical daily rates per gram</p>
+    </div>
+
+    <div class="inline-flex rounded-lg bg-gray-100 p-1" role="tablist">
+      <button
+        id="btn-7days"
+        type="button"
+        class="chart-toggle-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150 bg-amber-500 text-white shadow-sm"
+        data-days="7"
+      >
+        7 Days
+      </button>
+      <button
+        id="btn-30days"
+        type="button"
+        class="chart-toggle-btn rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
+        data-days="30"
+      >
+        30 Days
+      </button>
+    </div>
   </div>
 
-  <!-- Chart container with fixed height -->
-  <div class="relative w-full h-72">
-    <canvas 
-      id="goldChart" 
-      class="w-full h-full"
-      data-labels={JSON.stringify(labels)} 
-      data-prices={JSON.stringify(dataPoints)}>
-    </canvas>
+  <!-- Loading State Indicator -->
+  <div id="chart-loader" class="hidden flex items-center justify-center h-72 w-full">
+    <div class="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"></div>
+  </div>
+
+  <!-- Chart Canvas Container -->
+  <div id="chart-container" class="relative h-72 w-full">
+    <canvas id="goldChartCanvas" data-city-slug={citySlug}></canvas>
   </div>
 </div>
 
-<script type="module">
-  import { Chart, registerables } from "chart.js";
-  Chart.register(...registerables);
+<script>
+  import Chart from 'chart.js/auto';
 
-  const canvas = document.getElementById("goldChart");
-  if (!(canvas instanceof HTMLCanvasElement)) throw new Error("Gold chart canvas not found");
+  // Holds active Chart instance globally in component scope
+  let currentChart: Chart | null = null;
 
-  const labels = JSON.parse(canvas.getAttribute("data-labels") || "[]");
-  const dataPoints = JSON.parse(canvas.getAttribute("data-prices") || "[]");
+  async function fetchAndRenderChart(days = 7) {
+    const canvas = document.getElementById('goldChartCanvas') as HTMLCanvasElement | null;
+    const loader = document.getElementById('chart-loader');
+    const container = document.getElementById('chart-container');
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Unable to get 2D context for gold chart");
+    if (!canvas) return;
+    const citySlug = canvas.dataset.citySlug;
+    if (!citySlug) return;
 
-  function getSlice(days) {
-    return {
-      labels: labels.slice(-days),
-      data: dataPoints.slice(-days)
-    };
-  }
+    // Show loading spinner
+    if (loader && container) {
+      loader.classList.remove('hidden');
+      container.classList.add('opacity-30');
+    }
 
-  // Initial chart (7 days)
-  let { labels: initLabels, data: initData } = getSlice(7);
+    try {
+      // 1. Fetch data from FastAPI backend
+      const response = await fetch(`/api/v1/gold/${citySlug}/history?days=${'30'}`);
+      if (!response.ok) {
+        throw new Error(`Failed to load historical data: ${response.statusText}`);
+      }
 
-  const chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: initLabels,
-      datasets: [{
-        label: "Gold Price (₹/10g)",
-        data: initData,
-        borderColor: initData[initData.length - 1] >= initData[0]
-          ? "rgba(34,197,94,1)"   // green if price rose
-          : "rgba(239,68,68,1)", // red if price fell
-        backgroundColor: "rgba(255, 215, 0, 0.2)",
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false, // fill parent container
-      plugins: {
-        legend: { display: true },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `₹${ctx.raw} per 10g`
-          }
-        }
-      },
-      scales: {
-        y: {
-          ticks: {
-            callback: (value) => `₹${value}`
-          }
-        }
+      const rawData = await response.json();
+      console.log('==> ', rawData)
+      // 2. Sort chronologically (Oldest -> Newest) for correct left-to-right plotting
+      const sortedData = [...rawData].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      // Extract visual axis datasets
+      const labels = sortedData.map((item) =>
+        new Date(item.date).toLocaleDateString('en-IN', {
+          month: 'short',
+          day: 'numeric',
+        })
+      );
+      const prices24k = sortedData.map((item) => item.carat_24k);
+      const prices22k = sortedData.map((item) => item.carat_22k);
+
+      // 3. Destroy previous instance to prevent overlapping hover artifacts
+      if (currentChart) {
+        currentChart.destroy();
+        currentChart = null;
+      }
+
+      // 4. Render Chart.js
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '24K Gold (₹/g)',
+              data: prices24k,
+              borderColor: '#d97706', // amber-600
+              backgroundColor: 'rgba(217, 119, 6, 0.08)',
+              fill: true,
+              tension: 0.3,
+              borderWidth: 2,
+              pointRadius: sortedData.length > 15 ? 2 : 4,
+              pointHoverRadius: 6,
+            },
+            {
+              label: '22K Gold (₹/g)',
+              data: prices22k,
+              borderColor: '#ca8a04', // yellow-600
+              backgroundColor: 'transparent',
+              borderDash: [4, 4],
+              tension: 0.3,
+              borderWidth: 2,
+              pointRadius: sortedData.length > 15 ? 2 : 4,
+              pointHoverRadius: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                boxWidth: 8,
+                font: { size: 12 },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (context: any) => ` ${context.dataset.label}: ₹${context.parsed.y.toLocaleString('en-IN')}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { maxRotation: 0, font: { size: 11 } },
+            },
+            y: {
+              grid: { color: '#f3f4f6' },
+              ticks: {
+                font: { size: 11 },
+                callback: (value) => `₹${value}`,
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.error('[GoldChart] Error rendering chart:', error);
+    } finally {
+      // Hide loading spinner
+      if (loader && container) {
+        loader.classList.add('hidden');
+        container.classList.remove('opacity-30');
       }
     }
-  });
+  }
 
-  // Toggle handlers
-  document.getElementById("btn7").addEventListener("click", () => {
-    const { labels: newLabels, data: newData } = getSlice(7);
-    chart.data.labels = newLabels;
-    chart.data.datasets[0].data = newData;
-    chart.update();
-  });
+  function updateButtonStyles(activeBtn: HTMLElement, inactiveBtn: HTMLElement) {
+    // Active class state (amber filled)
+    activeBtn.className =
+      'chart-toggle-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150 bg-amber-500 text-white shadow-sm';
 
-  document.getElementById("btn30").addEventListener("click", () => {
-    const { labels: newLabels, data: newData } = getSlice(30);
-    chart.data.labels = newLabels;
-    chart.data.datasets[0].data = newData;
-    chart.update();
-  });
+    // Inactive class state (gray subtle)
+    inactiveBtn.className =
+      'chart-toggle-btn rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150';
+  }
+
+  function initChart() {
+    const btn7 = document.getElementById('btn-7days');
+    const btn30 = document.getElementById('btn-30days');
+
+    if (!btn7 || !btn30) return;
+
+    // Attach fresh event listeners
+    btn7.onclick = () => {
+      updateButtonStyles(btn7, btn30);
+      fetchAndRenderChart(7);
+    };
+
+    btn30.onclick = () => {
+      updateButtonStyles(btn30, btn7);
+      fetchAndRenderChart(30);
+    };
+
+    // Initial render call (defaulting to 7 days)
+    fetchAndRenderChart(7);
+  }
+
+  // Runs on initial load AND on every View Transitions navigation
+  document.addEventListener('astro:page-load', initChart);
 </script>

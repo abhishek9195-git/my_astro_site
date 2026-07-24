@@ -4,10 +4,15 @@ import BaseLayout from "../../../../../layouts/BaseLayout.astro";
 import Breadcrumb from "../../../../../components/Breadcrumb.astro";
 import GoldComparisonTable from "../../../../../components/GoldComparisonTable.astro";
 import GoldProsCons from "../../../../../components/GoldProsCons.astro";
-import GenericChart from '../../../../../components/GenericChart.astro';
+import GenericChart from "../../../../../components/GenericChart.astro";
+import GoldCalculator from "../../../../../components/GoldCalculator.astro";
 
-import type { Country, City, Price, State } from '../../../../../types';
-import { get_cities_by_state_slug, get_latest_gold_price_by_slug, get_states_by_country_slug } from '../../../../../lib/api';
+import type { Country, City, Price, State } from "../../../../../types";
+import { 
+  get_cities_by_state_slug, 
+  get_latest_gold_price_by_slug, 
+  get_states_by_country_slug 
+} from "../../../../../lib/api";
 import { getCollection, render } from "astro:content";
 
 const { country, state, city } = Astro.params;
@@ -20,31 +25,46 @@ const capitalize = (str?: string) =>
 const cityNameFormatted = capitalize(city);
 const stateNameFormatted = capitalize(state);
 
-const LATEST_GOLD_PRICE = (await get_latest_gold_price_by_slug(slug)) as Price[] || [];
+const LATEST_GOLD_PRICE = (await get_latest_gold_price_by_slug(slug)) as Price || {};
+
+// Format wide-schema price items for key purity display
+const latest_gold_prices = ['24k', '22k', '18k', '14k'].map((carat) => {
+  const priceVal = (LATEST_GOLD_PRICE as Record<string, any>)[`carat_${carat}`] || 0;
+  return {
+    carat,
+    price: priceVal,
+    unit: LATEST_GOLD_PRICE['unit'] || 'per gram'
+  };
+});
+
 const LIST_OF_CITIES = (await get_cities_by_state_slug(state || "")) as City[] || [];
 const LIST_OF_STATES = (await get_states_by_country_slug(country || "")) as State[] || [];
 
 export async function getStaticPaths() {
   const URL = `${import.meta.env.PUBLIC_API_URL}/location/countries`;
-  const response = await fetch(URL);
-  const countries = (await response.json()) as Country[];
+  try {
+    const response = await fetch(URL);
+    const countries = (await response.json()) as Country[];
 
-  const paths = [];
-  for (const c of countries) {
-    for (const s of c.states) {
-      for (const ct of s.cities) {
-        paths.push({
-          params: {
-            country: c.slug,
-            state: s.slug,
-            city: ct.slug,
-          },
-        });
+    const paths = [];
+    for (const c of countries) {
+      for (const s of c.states || []) {
+        for (const ct of s.cities || []) {
+          paths.push({
+            params: {
+              country: c.slug,
+              state: s.slug,
+              city: ct.slug,
+            },
+          });
+        }
       }
     }
+    return paths;
+  } catch (err) {
+    console.error("Error fetching static paths for gold rates:", err);
+    return [];
   }
-
-  return paths;
 }
 
 // Load SEO Markdown content
@@ -59,25 +79,40 @@ const faqContent = (await getCollection("gold-faq")).find(
   (entry) => entry.data.slug === "gold-faq-slug"
 );
 
-const formattedDate = LATEST_GOLD_PRICE[0]?.date
-  ? new Date(LATEST_GOLD_PRICE[0].date).toLocaleDateString("en-IN", {
+const formattedDate = LATEST_GOLD_PRICE.date
+  ? new Date(LATEST_GOLD_PRICE.date).toLocaleDateString("en-IN", {
       year: "numeric",
       month: "short",
       day: "numeric",
     })
   : "Today";
+
+// Build Schema.org Product structured data for SEO search snippets
+const jsonLdSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": `Gold Rate Today in ${cityNameFormatted}`,
+  "description": `Live 24K, 22K, 18K and 14K Gold rates in ${cityNameFormatted}, ${stateNameFormatted}. Updated ${formattedDate}.`,
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "INR",
+    "lowPrice": LATEST_GOLD_PRICE.carat_14k || 0,
+    "highPrice": LATEST_GOLD_PRICE.carat_24k || 0,
+    "offerCount": "4"
+  }
+};
 ---
 
-<BaseLayout title={`Gold Rates in ${cityNameFormatted}, ${stateNameFormatted}`}>
-  <!-- Main Page Container with #F6FAFD background -->
+<BaseLayout title={`Gold Rates in ${cityNameFormatted}, ${stateNameFormatted} | Live Prices`}>
+  <!-- Inject Structured Data for Google Rich Snippets -->
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLdSchema)} />
 
-      <!-- Breadcrumb Header -->
-    <nav class="opacity-90">
-      <Breadcrumb breadcrumbs={["gold-rate", country || "", state || "", city || ""]} />
-    </nav>
+  <!-- Breadcrumb Header -->
+  <nav class="opacity-90 max-w-6xl mx-auto px-4 pt-4">
+    <Breadcrumb breadcrumbs={["gold-rate", country || "", state || "", city || ""]} />
+  </nav>
+
   <div class="max-w-6xl mx-auto rounded-3xl px-4 py-3 space-y-10 bg-[#F6FAFD] text-[#0A1931] min-h-screen">
-    
-
 
     <!-- Hero Header -->
     <header class="relative overflow-hidden rounded-3xl bg-white p-8 border border-[#0A1931]/10 shadow-sm shadow-[#0A1931]/5">
@@ -99,29 +134,39 @@ const formattedDate = LATEST_GOLD_PRICE[0]?.date
       </div>
     </header>
 
-    <!-- Dynamic Price Grid -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Dynamic Price Grid (Wide Schema: 24K, 22K, 18K, 14K) -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {
-        LATEST_GOLD_PRICE.map(({ price, carat, unit }) => (
-          <div class="group relative overflow-hidden rounded-2xl bg-white border border-[#0A1931]/10 p-6 shadow-sm shadow-[#0A1931]/5 hover:shadow-md hover:shadow-[#0A1931]/10 transition-all duration-300 hover:-translate-y-1 hover:border-[#0A1931]/20">
-            <div class="flex justify-between items-center mb-4">
+        latest_gold_prices.map((gold) => (
+          <div class="group relative overflow-hidden rounded-2xl bg-white border border-[#0A1931]/10 p-5 shadow-sm shadow-[#0A1931]/5 hover:shadow-md hover:shadow-[#0A1931]/10 transition-all duration-300 hover:-translate-y-1 hover:border-[#0A1931]/20">
+            <div class="flex justify-between items-center mb-3">
               <span class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-[#0A1931]/5 text-[#0A1931] border border-[#0A1931]/10">
-                {carat} Gold
+                {gold.carat}
               </span>
-              <span class="text-xs opacity-60 font-medium">{unit}</span>
+              <span class="text-xs opacity-60 font-medium">{gold.unit}</span>
             </div>
             
-            <div class="text-3xl font-black text-[#0A1931] group-hover:opacity-90 transition-colors">
-              ₹{Number(price).toLocaleString("en-IN")}
+            <div class="text-2xl sm:text-3xl font-black text-[#0A1931] group-hover:opacity-90 transition-colors">
+              ₹{Number(gold.price).toLocaleString("en-IN")}
             </div>
 
-            <div class="mt-2 text-xs opacity-70 flex items-center gap-1 font-medium">
+            <div class="mt-2 text-xs opacity-70 flex items-center justify-between font-medium">
               <span>Standard Bullion Rate</span>
+              <span class="text-emerald-600 font-semibold">Live</span>
             </div>
           </div>
         ))
       }
     </section>
+
+    <!-- Interactive Weight & Making Charge Gold Calculator Component -->
+    <GoldCalculator 
+      cityName={cityNameFormatted}
+      carat24k={LATEST_GOLD_PRICE.carat_24k}
+      carat22k={LATEST_GOLD_PRICE.carat_22k}
+      carat18k={LATEST_GOLD_PRICE.carat_18k}
+      carat14k={LATEST_GOLD_PRICE.carat_14k}
+    />
 
     <!-- Overview Card -->
     <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5">
@@ -131,25 +176,26 @@ const formattedDate = LATEST_GOLD_PRICE[0]?.date
       </h2>
       <p class="opacity-80 leading-relaxed text-base">
         In <strong class="text-[#0A1931] font-bold">{cityNameFormatted}</strong>, today’s 24K gold price is 
-        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE[0]?.price}</span> per {LATEST_GOLD_PRICE[0]?.unit}, 
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE.carat_24k || 0}</span> {LATEST_GOLD_PRICE.unit}, 
         reflecting current investment trends. 22K gold stands at 
-        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE[1]?.price}</span> per {LATEST_GOLD_PRICE[1]?.unit} 
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE.carat_22k || 0}</span> {LATEST_GOLD_PRICE.unit} 
         as the primary choice for jewelry, alongside 18K gold at 
-        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE[2]?.price}</span> per {LATEST_GOLD_PRICE[2]?.unit}.
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE.carat_18k || 0}</span> {LATEST_GOLD_PRICE.unit} and 14K at 
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE.carat_14k || 0}</span> {LATEST_GOLD_PRICE.unit}.
       </p>
     </section>
 
-    <!-- Purity Specific Details & Interactive Charts -->
+    <!-- Interactive Historical Price Charts -->
     <div class="space-y-8">
       <!-- 24K Gold -->
       <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-6">
         <div>
           <h2 class="text-xl font-bold text-[#0A1931] mb-2">24K Gold Price Trend in {cityNameFormatted}</h2>
           <p class="opacity-75 text-sm leading-relaxed">
-            The purest form of gold (99.9%), 24K is valued at ₹{LATEST_GOLD_PRICE[0]?.price} per gram in {cityNameFormatted}. Ideal for bullion coins, bars, and long-term investment portfolios.
+            The purest form of gold (99.9%), 24K is valued at ₹{LATEST_GOLD_PRICE.carat_24k || 0} {LATEST_GOLD_PRICE.unit} in {cityNameFormatted}. Ideal for bullion coins, bars, and long-term investment portfolios.
           </p>
         </div>
-        <GenericChart slug={slug} carat={'24k'} number_of_days={7} chartId="chart24k"/>
+        <GenericChart slug={slug} carat={'carat_24k'} number_of_days={7} chartId="chart24k"/>
       </section>
 
       <!-- 22K Gold -->
@@ -157,10 +203,10 @@ const formattedDate = LATEST_GOLD_PRICE[0]?.date
         <div>
           <h2 class="text-xl font-bold text-[#0A1931] mb-2">22K Gold Price Trend in {cityNameFormatted}</h2>
           <p class="opacity-75 text-sm leading-relaxed">
-            22K gold in {cityNameFormatted} is ₹{LATEST_GOLD_PRICE[1]?.price} per gram. Alloyed with metals like copper or silver for durability, it's preferred for everyday jewelry and ornaments.
+            22K gold in {cityNameFormatted} is ₹{LATEST_GOLD_PRICE.carat_22k || 0} {LATEST_GOLD_PRICE.unit}. Alloyed with metals like copper or silver for durability, it's preferred for everyday jewelry and ornaments.
           </p>
         </div>
-        <GenericChart slug={slug} carat={'22k'} number_of_days={7} chartId="chart22k"/>
+        <GenericChart slug={slug} carat={'carat_22k'} number_of_days={7} chartId="chart22k"/>
       </section>
 
       <!-- 18K Gold -->
@@ -168,20 +214,20 @@ const formattedDate = LATEST_GOLD_PRICE[0]?.date
         <div>
           <h2 class="text-xl font-bold text-[#0A1931] mb-2">18K Gold Price Trend in {cityNameFormatted}</h2>
           <p class="opacity-75 text-sm leading-relaxed">
-            Valued at ₹{LATEST_GOLD_PRICE[2]?.price} per gram in {cityNameFormatted}, 18K gold provides an affordable yet durable balance for diamond-studded and modern lifestyle jewelry.
+            Valued at ₹{LATEST_GOLD_PRICE.carat_18k || 0} {LATEST_GOLD_PRICE.unit} in {cityNameFormatted}, 18K gold provides an affordable yet durable balance for diamond-studded and modern lifestyle jewelry.
           </p>
         </div>
-        <GenericChart slug={slug} carat={'18k'} number_of_days={7} chartId="chart18k"/>
+        <GenericChart slug={slug} carat={'carat_18k'} number_of_days={7} chartId="chart18k"/>
       </section>
     </div>
 
     <!-- Comparison Table & Pros/Cons -->
     <div class="space-y-8">
-      <GoldComparisonTable data={''} />
+      <GoldComparisonTable data={LATEST_GOLD_PRICE} />
       <GoldProsCons />
     </div>
 
-    <!-- SEO Content Section -->
+    <!-- SEO Markdown Content Section -->
     {seoContent && rendered && (
       <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 text-[#0A1931] prose max-w-none">
         <h2 class="text-2xl font-bold text-[#0A1931] mb-4">{seoContent.data.title}</h2>

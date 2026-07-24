@@ -29,3 +29,9 @@ export async function get_gold_price_history_by_slug_carat_and_days(slug: string
   if (!res.ok) throw new Error("Failed to fetch prices");
   return res.json();
 }
+
+export async function get_gold_price_history_by_slug_and_days(slug: string, days: number) {
+  const res = await fetch(`${BASE_URL}/metals/gold/${slug}/history?days=${days}`);
+  if (!res.ok) throw new Error("Failed to fetch prices");
+  return res.json();
+}

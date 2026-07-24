@@ -1,23 +1,25 @@
 ---
 import type { Price } from "../types";
-import { get_gold_price_history_by_slug_carat_and_days } from "../lib/api";
+import { get_gold_price_history_by_slug_and_days } from "../lib/api";
 
 interface Props {
   slug: string;
   carat: string;
-  number_of_days: number;
+  number_of_days?: number; // Optional now, defaults to 30 to store full window
   chartId: string; // unique per chart
 }
 
-const { slug, carat, number_of_days, chartId } = Astro.props;
-const prices: Price[] = await get_gold_price_history_by_slug_carat_and_days(
-  slug,
-  carat,
-  number_of_days
-);
+const { slug, carat, number_of_days = 30, chartId } = Astro.props;
 
+// CRITICAL FIX 1: Pre-fetch up to 30 days on server so client-side .slice(-30) actually has 30 items
+const fetchDays = Math.max(number_of_days, 30);
+const prices: Price[] = await get_gold_price_history_by_slug_and_days(
+  slug,
+  fetchDays
+);
+console.log('==> prices', prices);
 const labels: string[] = prices.map((p) => p.date);
-const dataPoints: number[] = prices.map((p) => p.price);
+const dataPoints: number[] = prices.map((p: any) => p[carat]);
 ---
 
 <div class="w-full chart-wrapper p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-md" data-chart-id={chartId}>
@@ -61,8 +63,11 @@ const dataPoints: number[] = prices.map((p) => p.price);
 </div>
 
 <script>
-  import { Chart, registerables, type ScriptableContext } from "chart.js";
+  import { Chart, registerables } from "chart.js";
   Chart.register(...registerables);
+
+  // Store active Chart instances mapped by canvas ID to prevent leaks on Astro navigation
+  const chartInstances = new Map<string, Chart>();
 
   function createGradient(ctx: CanvasRenderingContext2D, isUpTrend: boolean) {
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
@@ -84,16 +89,20 @@ const dataPoints: number[] = prices.map((p) => p.price);
       if (!chartId) return;
 
       const canvas = document.getElementById(chartId) as HTMLCanvasElement | null;
-      if (!canvas || canvas.dataset.initialized) return;
+      if (!canvas) return;
 
-      canvas.dataset.initialized = "true";
+      // CRITICAL FIX 2: Clean up previous Chart instance if Astro ViewTransitions re-runs script
+      if (chartInstances.has(chartId)) {
+        chartInstances.get(chartId)?.destroy();
+        chartInstances.delete(chartId);
+      }
 
-      const labels = JSON.parse(canvas.getAttribute("data-labels") || "[]");
-      const dataPoints = JSON.parse(canvas.getAttribute("data-prices") || "[]");
+      const labels: string[] = JSON.parse(canvas.getAttribute("data-labels") || "[]");
+      const dataPoints: number[] = JSON.parse(canvas.getAttribute("data-prices") || "[]");
       const carat = canvas.getAttribute("data-carat") || "";
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) return; // Early return ensures `ctx` is CanvasRenderingContext2D below
+      if (!ctx) return;
 
       function getSlice(days: number) {
         return {
@@ -102,6 +111,7 @@ const dataPoints: number[] = prices.map((p) => p.price);
         };
       }
 
+      // Initial view defaults to last 7 days
       let { labels: initLabels, data: initData } = getSlice(7);
       const isUpTrend = initData.length > 1 ? initData[initData.length - 1] >= initData[0] : true;
       const primaryColor = isUpTrend ? "#22c55e" : "#ef4444";
@@ -159,6 +169,7 @@ const dataPoints: number[] = prices.map((p) => p.price);
               ticks: {
                 color: "#64748b",
                 font: { size: 11 },
+                maxRotation: 0,
               },
             },
             y: {
@@ -175,11 +186,13 @@ const dataPoints: number[] = prices.map((p) => p.price);
         },
       });
 
+      // Track instance globally for future cleanups
+      chartInstances.set(chartId, chart);
+
       const btn7 = document.getElementById(`btn7-${chartId}`);
       const btn30 = document.getElementById(`btn30-${chartId}`);
 
       function updateData(days: number, activeBtn: HTMLElement | null, inactiveBtn: HTMLElement | null) {
-        // Asserting ctx again inside closure to appease TypeScript strict mode
         if (!ctx) return;
 
         const { labels: newLabels, data: newData } = getSlice(days);
@@ -197,11 +210,17 @@ const dataPoints: number[] = prices.map((p) => p.price);
         inactiveBtn?.setAttribute("data-active", "false");
       }
 
-      btn7?.addEventListener("click", () => updateData(7, btn7, btn30));
-      btn30?.addEventListener("click", () => updateData(30, btn30, btn7));
+      // Re-bind click handlers cleanly
+      if (btn7) btn7.onclick = () => updateData(7, btn7, btn30);
+      if (btn30) btn30.onclick = () => updateData(30, btn30, btn7);
     });
   }
 
-  initCharts();
+  // Handle standard DOM load and Astro ViewTransitions page-load
+  if (document.readyState === "interactive" || document.readyState === "complete") {
+    initCharts();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCharts);
+  }
   document.addEventListener("astro:page-load", initCharts);
 </script>
