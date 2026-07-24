@@ -1,0 +1,133 @@
+---
+interface GoldComparison {
+  name: string;
+  purity: string;
+  alloy: string;
+  durability: string;
+  color: string;
+  bestFor: string;
+  relativePrice: string;
+}
+
+const { data: incomingData } = Astro.props as { data?: GoldComparison[] };
+
+const comparisonData: GoldComparison[] = Array.isArray(incomingData) && incomingData.length > 0
+  ? incomingData
+  : [
+      {
+        name: "24K Gold",
+        purity: "99.9% pure",
+        alloy: "Minimal alloy",
+        durability: "Soft, less durable",
+        color: "Bright yellow",
+        bestFor: "Investment, bullion",
+        relativePrice: "Highest",
+      },
+      {
+        name: "22K Gold",
+        purity: "91.6% pure",
+        alloy: "8.4% alloy (copper/silver)",
+        durability: "Durable for jewelry",
+        color: "Rich yellow",
+        bestFor: "Jewelry, weddings",
+        relativePrice: "High",
+      },
+      {
+        name: "18K Gold",
+        purity: "75% pure",
+        alloy: "25% alloy (copper/silver)",
+        durability: "Strong, highly durable",
+        color: "Softer yellow",
+        bestFor: "Designer jewelry",
+        relativePrice: "Moderate",
+      },
+    ];
+---
+
+<section class="rounded-2xl bg-white border border-gray-200 p-6 sm:p-8 shadow-sm shadow-gray-200/60 space-y-6">
+  <div class="border-b border-gray-200/80 pb-4">
+    <h2 class="text-2xl font-bold text-slate-900">
+      Comparison Summary of Gold (24K, 22K, 18K)
+    </h2>
+    <p class="text-xs text-slate-500 mt-1">
+      Comparing key features including purity level, alloy density, color tones, and recommended uses.
+    </p>
+  </div>
+
+  <!-- Desktop Table (Fits Container - No Scroll) -->
+  <div class="hidden md:block rounded-xl border border-gray-200/80 overflow-hidden">
+    <table class="w-full text-left text-xs sm:text-sm table-fixed border-collapse">
+      <thead class="bg-gray-100/80 text-slate-700 font-semibold border-b border-gray-200">
+        <tr>
+          <th class="w-[12%] px-3 py-3">Carat</th>
+          <th class="w-[13%] px-3 py-3">Purity</th>
+          <th class="w-[18%] px-3 py-3">Alloy %</th>
+          <th class="w-[18%] px-3 py-3">Durability</th>
+          <th class="w-[15%] px-3 py-3">Color</th>
+          <th class="w-[14%] px-3 py-3">Best For</th>
+          <th class="w-[10%] px-3 py-3 text-right">Price</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 text-slate-600 font-medium">
+        {comparisonData.map((row) => (
+          <tr class="hover:bg-gray-50/80 transition-colors">
+            <td class="px-3 py-3.5 font-bold text-slate-900">
+              <span class="inline-block px-2 py-0.5 bg-slate-900 text-white text-[11px] rounded-md whitespace-nowrap">
+                {row.name}
+              </span>
+            </td>
+            <td class="px-3 py-3.5 text-slate-800 font-semibold">{row.purity}</td>
+            <td class="px-3 py-3.5 leading-snug">{row.alloy}</td>
+            <td class="px-3 py-3.5 leading-snug">{row.durability}</td>
+            <td class="px-3 py-3.5 leading-snug">{row.color}</td>
+            <td class="px-3 py-3.5 leading-snug">{row.bestFor}</td>
+            <td class="px-3 py-3.5 text-right">
+              <span class="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-full text-[11px] font-semibold whitespace-nowrap">
+                {row.relativePrice}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile Responsive Cards -->
+  <div class="md:hidden space-y-4">
+    {comparisonData.map((row) => (
+      <div class="rounded-xl border border-gray-200 bg-gray-50/40 p-4 space-y-3 shadow-sm">
+        <div class="flex justify-between items-center border-b border-gray-200/80 pb-2.5">
+          <span class="px-2.5 py-0.5 bg-slate-900 text-white text-xs font-bold rounded-md">
+            {row.name}
+          </span>
+          <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-full text-[11px] font-semibold">
+            {row.relativePrice} Price
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-2 gap-y-2 text-xs">
+          <div>
+            <span class="text-slate-400 block font-medium">Purity</span>
+            <span class="text-slate-800 font-semibold">{row.purity}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-medium">Alloy %</span>
+            <span class="text-slate-700">{row.alloy}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-medium">Durability</span>
+            <span class="text-slate-700">{row.durability}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-medium">Color Tone</span>
+            <span class="text-slate-700">{row.color}</span>
+          </div>
+          <div class="col-span-2 pt-1 border-t border-gray-200/50">
+            <span class="text-slate-400 block font-medium">Best For</span>
+            <span class="text-slate-800 font-medium">{row.bestFor}</span>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>

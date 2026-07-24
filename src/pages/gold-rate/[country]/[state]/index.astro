@@ -1,0 +1,68 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import Breadcrumb from "../../../../components/Breadcrumb.astro";
+import type { Country, City, Price } from '../../../../types';
+import { get_cities_by_state_slug, get_latest_gold_price_by_slug } from '../../../../lib/api';
+
+const { country, state } = Astro.params;
+
+const LATEST_GOLD_PRICE = await get_latest_gold_price_by_slug(state) as Price[];
+const LIST_OF_CITIES = await get_cities_by_state_slug(state) as City[];
+
+export async function getStaticPaths() {
+    const URL = `${import.meta.env.PUBLIC_API_URL}/location/countries`;
+    const response = await fetch(URL);
+    const countries = await response.json() as Country[];
+
+     const paths = [];
+  for (const country of countries) {
+    for (const state of country.states) {
+      paths.push({
+        params: {
+          country: country.slug,
+          state: state.slug
+        }
+      });
+    }
+  }
+
+  return paths;
+
+}
+---
+
+<BaseLayout title={`Gold Rates in ${country}`}>
+  <Breadcrumb breadcrumbs={["gold-rate", country, state]} />
+  <h1 class="text-3xl font-bold mb-2">Gold Price in {state}</h1>
+  <!-- render prices -->
+      <section class="flex gap-4 my-6 bg-white shadow rounded-lg p-6 mb-8">
+    {
+        LATEST_GOLD_PRICE.map(({price, carat, unit}) => (
+            <div class="flex flex-col items-center bg-white shadow rounded-lg p-4 w-40">
+            <div class="text-sm font-semibold text-gray-700">{carat}</div>
+            <div class="text-xl font-bold text-yellow-600">{price}</div>
+            <div class="text-xs text-gray-500">per {unit}</div>
+            </div>
+        ))
+    }
+    </section>
+
+    {
+    LIST_OF_CITIES.length > 0 && (
+      <section class="mt-12 border-t pt-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Explore Gold Rates by City</h2>
+        <div class="flex flex-wrap gap-3">
+          {
+            LIST_OF_CITIES.map(({ slug, name }) => (
+              <a href={`/gold-rate/${country}/${state}/${slug}`}
+                 class="px-3 py-2 bg-gray-100 hover:bg-yellow-100 rounded-md text-sm text-gray-700 hover:text-yellow-700 transition">
+                {name}
+              </a>
+            ))
+          }
+        </div>
+      </section>
+    )
+    }
+</BaseLayout>

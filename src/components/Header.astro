@@ -2,132 +2,169 @@
 import "../styles/global.css";
 ---
 
-<header class="bg-white shadow sticky top-0 z-50">
+<header class="bg-[#0A1931] text-[#F6FAFD] sticky top-0 z-50 border-b border-[#F6FAFD]/10 backdrop-blur-md bg-opacity-95 shadow-md shadow-[#0A1931]/10">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between py-4">
-      <!-- Logo -->
+    <div class="flex items-center justify-between h-16 sm:h-20">
+      
+      <!-- Brand Logo -->
       <div class="flex-shrink-0">
-        <a href="/" class="text-2xl font-bold text-blue-700">MySite</a>
+        <a href="/" class="flex items-center gap-2 group text-xl sm:text-2xl font-black tracking-wider text-[#F6FAFD]">
+          <span class="w-8 h-8 rounded-lg bg-[#F6FAFD]/10 border border-[#F6FAFD]/20 flex items-center justify-center group-hover:bg-[#F6FAFD] group-hover:text-[#0A1931] transition-all duration-300">
+            <svg class="w-5 h-5 text-amber-400 group-hover:text-[#0A1931]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </span>
+          <span class="font-extrabold tracking-tight">BHARAT GOLD RESERVE</span>
+        </a>
       </div>
 
-      <!-- Centered Nav -->
-      <nav class="hidden md:flex flex-1 justify-center space-x-6">
-        <a href="/" class="text-gray-700 hover:text-blue-600 transition-colors">Home</a>
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center space-x-1 lg:space-x-2 font-medium text-xs lg:text-sm">
+        <a href="/" class="px-3 py-2 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 transition-all">Precious Metals</a>
 
-        <!-- Mega Dropdown (Click-to-open) -->
+        <!-- Mega Dropdown Trigger -->
         <div class="relative">
-          <!-- Trigger -->
-          <button id="markets-btn" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-            Markets
-            <svg class="ml-1 h-4 w-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 9l-7 7-7-7" />
+          <button 
+            id="markets-btn" 
+            class="flex items-center gap-1 px-3 py-2 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 transition-all cursor-pointer focus:outline-none"
+          >
+            <span>Financial Services</span>
+            <svg id="markets-icon" class="w-4 h-4 opacity-70 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           <!-- Mega Menu Panel -->
-          <div id="markets-menu" class="hidden absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
-                      w-[650px] bg-white rounded-xl shadow-2xl z-50 
-                      border-t border-gray-200 p-8 grid grid-cols-3 gap-8">
+          <div 
+            id="markets-menu" 
+            class="hidden absolute left-1/2 top-full transform -translate-x-1/2 mt-3 
+                   w-[640px] bg-white text-[#0A1931] rounded-2xl shadow-2xl z-50 
+                   border border-[#0A1931]/10 p-6 grid grid-cols-3 gap-6"
+          >
             <!-- Column 1 -->
-            <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Equities</h3>
-              <a href="/markets/stocks" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">📈 <span class="ml-2">Stocks</span></a>
-              <a href="/markets/ipo" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🚀 <span class="ml-2">IPOs</span></a>
-              <a href="/markets/indices" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">📊 <span class="ml-2">Indices</span></a>
+            <div class="space-y-1">
+              <h3 class="text-[11px] font-bold uppercase tracking-wider text-[#0A1931]/50 px-2 mb-2">Wealth Management</h3>
+              <a href="/markets/stocks" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>📈</span> <span>Stocks</span>
+              </a>
+              <a href="/markets/ipo" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>🚀</span> <span>IPOs</span>
+              </a>
+              <a href="/markets/indices" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>📊</span> <span>Indices</span>
+              </a>
             </div>
 
             <!-- Column 2 -->
-            <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Investments</h3>
-              <a href="/markets/mutual-funds" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">💰 <span class="ml-2">Mutual Funds</span></a>
-              <a href="/markets/etfs" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">📦 <span class="ml-2">ETFs</span></a>
-              <a href="/markets/bonds" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🏦 <span class="ml-2">Bonds</span></a>
+            <div class="space-y-1">
+              <h3 class="text-[11px] font-bold uppercase tracking-wider text-[#0A1931]/50 px-2 mb-2">Investments</h3>
+              <a href="/markets/mutual-funds" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>💰</span> <span>Mutual Funds</span>
+              </a>
+              <a href="/markets/etfs" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>📦</span> <span>ETFs</span>
+              </a>
+              <a href="/markets/bonds" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>🏦</span> <span>Bonds</span>
+              </a>
             </div>
 
             <!-- Column 3 -->
-            <div>
-              <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Commodities</h3>
-              <a href="/markets/gold" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🥇 <span class="ml-2">Gold</span></a>
-              <a href="/markets/silver" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🥈 <span class="ml-2">Silver</span></a>
-              <a href="/markets/oil" class="flex items-center px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">🛢️ <span class="ml-2">Oil</span></a>
+            <div class="space-y-1">
+              <h3 class="text-[11px] font-bold uppercase tracking-wider text-[#0A1931]/50 px-2 mb-2">Commodities</h3>
+              <a href="/markets/gold" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>🥇</span> <span>Gold</span>
+              </a>
+              <a href="/markets/silver" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>🥈</span> <span>Silver</span>
+              </a>
+              <a href="/markets/oil" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#F6FAFD] hover:text-[#0A1931] transition-all">
+                <span>🛢️</span> <span>Oil</span>
+              </a>
             </div>
           </div>
         </div>
 
-        <a href="/gold-rates" class="text-gray-700 hover:text-blue-600 transition-colors">Gold Rates</a>
-        <a href="/news" class="text-gray-700 hover:text-blue-600 transition-colors">News</a>
-        <a href="/contact" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+        <a href="/gold-rates" class="px-3 py-2 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 transition-all">Gold Rates</a>
+        <a href="/news" class="px-3 py-2 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 transition-all">News</a>
+        <a href="/contact" class="px-3 py-2 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 transition-all">Contact</a>
       </nav>
 
-      <!-- Right Side (Search) -->
+      <!-- Search Field -->
       <div class="hidden md:flex items-center">
         <form action="/search" method="GET" class="relative">
           <input 
             type="text" 
             name="q" 
-            placeholder="Search..." 
-            class="w-40 lg:w-56 px-3 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            placeholder="Search market, rates..." 
+            class="w-44 lg:w-60 px-4 py-1.5 pl-9 rounded-full bg-[#F6FAFD]/10 border border-[#F6FAFD]/15 text-xs text-[#F6FAFD] placeholder-[#F6FAFD]/50 focus:outline-none focus:bg-[#F6FAFD]/15 focus:border-[#F6FAFD]/40 transition-all"
           />
-          <button type="submit" class="absolute right-2 top-1.5 text-gray-500 hover:text-blue-600">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
+          <button type="submit" aria-label="Search" class="absolute left-3 top-2 text-[#F6FAFD]/60 hover:text-[#F6FAFD] transition-colors">
+            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
             </svg>
           </button>
         </form>
       </div>
 
-      <!-- Mobile Hamburger -->
+      <!-- Mobile Hamburger Button -->
       <div class="md:hidden">
-        <button id="menu-btn" class="text-gray-700 focus:outline-none">
+        <button 
+          id="menu-btn" 
+          aria-label="Toggle Navigation Menu" 
+          class="p-2 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 focus:outline-none"
+        >
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
+
     </div>
   </div>
 
-  <!-- Mobile Menu -->
-  <div id="mobile-menu" class="hidden md:hidden bg-gray-50 border-t">
-    <nav class="flex flex-col p-4 space-y-2">
-      <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
-      <details>
-        <summary class="cursor-pointer text-gray-700 hover:text-blue-600 flex items-center">
-          Markets
-          <svg class="ml-1 h-4 w-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M19 9l-7 7-7-7" />
+  <!-- Mobile Dropdown Navigation -->
+  <div id="mobile-menu" class="hidden md:hidden bg-[#0A1931] border-t border-[#F6FAFD]/10 px-4 py-6 space-y-4">
+    <form action="/search" method="GET" class="relative">
+      <input 
+        type="text" 
+        name="q" 
+        placeholder="Search..." 
+        class="w-full px-4 py-2 pl-9 rounded-xl bg-[#F6FAFD]/10 border border-[#F6FAFD]/15 text-sm text-[#F6FAFD] placeholder-[#F6FAFD]/50 focus:outline-none focus:bg-[#F6FAFD]/15"
+      />
+      <button type="submit" aria-label="Search" class="absolute left-3 top-2.5 text-[#F6FAFD]/60">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
+        </svg>
+      </button>
+    </form>
+
+    <nav class="flex flex-col space-y-1 font-medium text-sm">
+      <a href="/" class="px-3 py-2.5 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10">Home</a>
+      
+      <details class="group">
+        <summary class="cursor-pointer px-3 py-2.5 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10 flex items-center justify-between select-none">
+          <span>Markets</span>
+          <svg class="h-4 w-4 text-[#F6FAFD]/60 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
-        <div class="pl-4 flex flex-col space-y-1">
-          <a href="/markets/stocks" class="text-gray-600 hover:text-blue-500">📈 Stocks</a>
-          <a href="/markets/mutual-funds" class="text-gray-600 hover:text-blue-500">💰 Mutual Funds</a>
-          <a href="/markets/commodities" class="text-gray-600 hover:text-blue-500">⚖️ Commodities</a>
+        <div class="pl-4 pr-2 py-2 flex flex-col space-y-1.5 border-l border-[#F6FAFD]/10 my-1 ml-3">
+          <a href="/markets/stocks" class="px-2 py-1.5 rounded-md text-xs text-[#F6FAFD]/70 hover:text-[#F6FAFD]">📈 Stocks</a>
+          <a href="/markets/mutual-funds" class="px-2 py-1.5 rounded-md text-xs text-[#F6FAFD]/70 hover:text-[#F6FAFD]">💰 Mutual Funds</a>
+          <a href="/markets/commodities" class="px-2 py-1.5 rounded-md text-xs text-[#F6FAFD]/70 hover:text-[#F6FAFD]">⚖️ Commodities</a>
         </div>
       </details>
-      <a href="/gold-rates" class="text-gray-700 hover:text-blue-600">Gold Rates</a>
-      <a href="/news" class="text-gray-700 hover:text-blue-600">News</a>
-      <a href="/contact" class="text-gray-700 hover:text-blue-600">Contact</a>
 
-      <!-- Mobile Search -->
-      <form action="/search" method="GET" class="mt-4">
-        <input 
-          type="text" 
-          name="q" 
-          placeholder="Search..." 
-          class="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-        />
-      </form>
+      <a href="/gold-rates" class="px-3 py-2.5 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10">Gold Rates</a>
+      <a href="/news" class="px-3 py-2.5 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10">News</a>
+      <a href="/contact" class="px-3 py-2.5 rounded-lg text-[#F6FAFD]/80 hover:text-[#F6FAFD] hover:bg-[#F6FAFD]/10">Contact</a>
     </nav>
   </div>
 </header>
 
-
 <script>
-  // Mobile menu toggle
+  // Mobile Menu Toggle
   const btn = document.getElementById("menu-btn");
   const menu = document.getElementById("mobile-menu");
   if (btn && menu) {
@@ -136,18 +173,17 @@ import "../styles/global.css";
     });
   }
 
-  // Mega menu toggle (click-to-open)
+  // Mega Menu Toggle
   const marketsBtn = document.getElementById("markets-btn");
   const marketsMenu = document.getElementById("markets-menu");
-  const marketsIcon = marketsBtn ? marketsBtn.querySelector("svg") : null;
+  const marketsIcon = document.getElementById("markets-icon");
 
   if (marketsBtn && marketsMenu) {
     marketsBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // prevent bubbling
+      e.stopPropagation();
       const isHidden = marketsMenu.classList.contains("hidden");
       marketsMenu.classList.toggle("hidden");
 
-      // Rotate icon when menu is open
       if (marketsIcon) {
         if (isHidden) {
           marketsIcon.classList.add("rotate-180");
@@ -157,7 +193,7 @@ import "../styles/global.css";
       }
     });
 
-    // Close mega menu when clicking outside
+    // Close on click outside
     document.addEventListener("click", (e: any) => {
       if (!marketsBtn.contains(e.target) && !marketsMenu.contains(e.target)) {
         marketsMenu.classList.add("hidden");
@@ -167,7 +203,7 @@ import "../styles/global.css";
       }
     });
 
-    // Close mega menu on Escape key
+    // Close on Escape key
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         marketsMenu.classList.add("hidden");
@@ -178,16 +214,3 @@ import "../styles/global.css";
     });
   }
 </script>
-
-<style>
-  /* Rotate caret icon for mobile details when open */
-  #mobile-menu details[open] summary svg {
-    transform: rotate(180deg);
-    transition: transform 0.2s ease-in-out;
-  }
-
-  /* Ensure summary svg has smooth transition even when closed */
-  #mobile-menu summary svg {
-    transition: transform 0.2s ease-in-out;
-  }
-</style>

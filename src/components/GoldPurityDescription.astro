@@ -1,0 +1,52 @@
+---
+import type { Price } from "../types";
+import GoldChart from '../components/GoldChart.astro';
+
+interface Props {
+    latestGoldPrice: Price[],
+    slug: string
+}
+
+const { latestGoldPrice, slug } = Astro.props;
+---
+
+<!-- 24K Gold -->
+<section class="mt-10 bg-white shadow rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold text-gray-800 mb-2">
+    24K Gold Price in {slug}
+  </h2>
+  <p class="text-gray-700 leading-relaxed">
+    In {slug}, the purest form of gold, 24K, is currently priced at ₹{latestGoldPrice[0]?.price} per gram. 
+    Known for its unmatched purity, 24K gold is the preferred choice for investors and 
+    bullion buyers seeking maximum value. Tracking the daily 24K gold rate in {slug} 
+    helps ensure smarter investment decisions.
+  </p>
+
+  <GoldChart prices={latestGoldPrice}/>
+</section>
+
+<!-- 22K Gold -->
+<section class="mt-10 bg-white shadow rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold text-gray-800 mb-2">
+    22K Gold Price in {slug}
+  </h2>
+  <p class="text-gray-700 leading-relaxed">
+    The 22K gold rate in {slug} stands at ₹{latestGoldPrice[1].price} per gram. Popular for jewelry making, 
+    22K gold balances purity with durability, making it ideal for ornaments worn daily. 
+    Buyers in {slug} often track 22K prices to find the best deals for weddings and 
+    traditional purchases.
+  </p>
+</section>
+
+<!-- 18K Gold -->
+<section class="mt-10 bg-white shadow rounded-lg p-6 mb-8">
+  <h2 class="text-lg font-semibold text-gray-800 mb-2">
+    18K Gold Price in {slug}
+  </h2>
+  <p class="text-gray-700 leading-relaxed">
+    In {slug}, 18K gold is currently valued at ₹{latestGoldPrice[2]?.price} per gram. With its blend of 
+    gold and alloys, 18K is widely chosen for designer jewelry and modern ornaments. 
+    Monitoring the 18K gold rate in {slug} ensures buyers stay updated on affordable 
+    yet stylish options.
+  </p>
+</section>

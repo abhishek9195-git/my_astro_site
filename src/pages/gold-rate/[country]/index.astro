@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Breadcrumb from "../../../components/Breadcrumb.astro";
+import type { Country, State, Price } from '../../../types';
+import { get_states_by_country_slug, get_latest_gold_price_by_slug } from '../../../lib/api';
+
+const { country } = Astro.params;
+
+const LATEST_GOLD_PRICE = await get_latest_gold_price_by_slug(country) as Price[];
+const LIST_OF_STATES = await get_states_by_country_slug(country) as State[];
+
+export async function getStaticPaths() {
+    const url_list_of_countries = `${import.meta.env.PUBLIC_API_URL}/location/countries`;
+    const COUNTRIES = (await (await fetch(url_list_of_countries)).json()) as Country[];
+    return COUNTRIES.map(({slug}) => ({
+        params: { country: slug }
+    }));
+}
+
+---
+
+<BaseLayout title={`Gold Rates in ${country}`}>
+  <Breadcrumb breadcrumbs={["gold-rate", country]} />
+
+  <h1 class="text-3xl font-bold mb-2">Gold Price in {country}</h1>
+  <!-- render prices -->
+    <section class="flex gap-4 my-6 bg-white shadow rounded-lg p-6 mb-8">
+    {
+        LATEST_GOLD_PRICE.map(({price, carat, unit}) => (
+            <div class="flex flex-col items-center bg-white shadow rounded-lg p-4 w-40">
+            <div class="text-sm font-semibold text-gray-700">{carat}</div>
+            <div class="text-xl font-bold text-yellow-600">{price}</div>
+            <div class="text-xs text-gray-500">per {unit}</div>
+            </div>
+        ))
+    }
+    </section>
+
+    <!-- render prices -->
+<!-- States navigation links -->
+  {
+    LIST_OF_STATES.length > 0 && (
+      <section class="mt-12 border-t pt-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Explore Gold Rates by State</h2>
+        <div class="flex flex-wrap gap-3">
+          {
+            LIST_OF_STATES.map(({ slug, name }) => (
+              <a href={`/gold-rate/${country}/${slug}`}
+                 class="px-3 py-2 bg-gray-100 hover:bg-yellow-100 rounded-md text-sm text-gray-700 hover:text-yellow-700 transition">
+                {name}
+              </a>
+            ))
+          }
+        </div>
+      </section>
+    )
+  }
+
+</BaseLayout>

@@ -1,101 +1,128 @@
 ---
-import data from "../../data/data.json";
-import type { DataFile, Country, State, City, Price } from "../../types";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GoldChart from "../../components/GoldChart.astro";
+import { getCollection, render } from "astro:content";
+import Breadcrumb from "../../components/Breadcrumb.astro";
 
-// Cast JSON to typed object
-const typedData: DataFile = data;
+// Get slug from URL
 const { slug } = Astro.params;
 
-// Helpers
-function findEntity(slug: string, countries: Country[]): Country | State | City | null {
-  for (const country of countries) {
-    if (country.slug === slug) return country;
+const breadcrumbs = Astro.url.pathname.split("/").filter(Boolean);
 
-    for (const state of country.states) {
-      if (state.slug === slug) return state;
+// Fetch gold data from backend
+const response = await fetch(`${import.meta.env.PUBLIC_API_URL}/metals/gold/${slug}`);
+const goldPrices = await response.json();
 
-      for (const city of state.cities) {
-        if (city.slug === slug) return city;
-      }
-    }
-  }
-  return null;
+const priceHistory = await (await fetch(`${import.meta.env.PUBLIC_API_URL}/metals/gold/${slug}/history`)).json() 
+console.log('==> priceHistory', priceHistory);
+//console.log('==> goldPrices', goldPrices);
+const latestGold = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1] : null;
+
+// Load SEO Markdown content
+const seoContent = (await getCollection("gold-rates")).find((entry) => entry.data.slug === slug);
+let rendered;
+if (seoContent) {
+  rendered = await render(seoContent);
 }
 
-function collectSlugs(countries: Country[]): string[] {
-  const slugs: string[] = [];
-  for (const country of countries) {
-    slugs.push(country.slug);
-    for (const state of country.states) {
-      slugs.push(state.slug);
-      for (const city of state.cities) {
-        slugs.push(city.slug);
-      }
-    }
-  }
-  return slugs;
-}
-
-// Entity lookup
-const entity = findEntity(slug, typedData.countries);
-const latestGold: Price | undefined = entity?.gold_prices?.slice(-1)[0];
-
-// Static paths
+// Generate static paths at build time by fetching slugs from backend
 export async function getStaticPaths() {
-  const slugs: string[] = [];
-  for (const country of data.countries) {
-    slugs.push(country.slug);
-    for (const state of country.states) {
-      slugs.push(state.slug);
-      for (const city of state.cities) {
-        slugs.push(city.slug);
-      }
-    }
-  }
-
-  return slugs.map((slug) => ({
-    params: { slug }
-  }));
+  const res = await fetch(`${import.meta.env.PUBLIC_API_URL}/slugs`);
+  const jsonResponse = await res.json();
+  const { slugs } = jsonResponse;
+  // console.log('==> slugs', slugs);
+  return slugs.map((slug: any) => ({ params: { slug } }));
 }
 ---
 
-<html lang="en">
-  <body>
-    <h1>Gold Price in {entity?.name}</h1>
+<BaseLayout 
+  title={`Today’s Gold Rate in ${slug} – 14k, 18k, 22k Prices`} 
+  description={`Check today’s gold price in ${slug} for 14k, 18k, and 22k. Updated daily with live rates, charts, and FAQs.`}
+>
+<!-- Inject JSON-LD schema -->
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": pathSegments.map((seg, idx) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "name": seg.replace("-", " "),
+          "item": `https://yoursite.com/${pathSegments.slice(0, idx + 1).join("/")}`
+        }))
+      })}
+    </script>
+  </Fragment>
 
-    {latestGold ? (
-      <div>
-        <p><strong>Latest ({latestGold.date}):</strong></p>
-        <ul>
-          {entity?.gold_prices.map((price: Price) => (
-            <li>{price.carat}: ₹{price.price} ({price.unit})</li>
-          ))}
-        </ul>
-      </div>
-    ) : (
-      <p>No gold price data available.</p>
-    )}
+<Breadcrumb breadcrumbs={breadcrumbs} />
 
-    <h2>Historical Data</h2>
-    <table border="1" cellpadding="6">
-      <thead>
+  <!-- Page Content -->
+  <h1 class="text-3xl font-bold mb-2">Gold Price in {slug} Today</h1>
+  <p class="text-sm text-gray-600 mb-6">Updated on {latestGold?.date}</p>
+
+  <!-- Latest Prices -->
+  <section class="bg-white shadow rounded-lg p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Latest Gold Rates</h2>
+    <ul class="space-y-2">
+      {goldPrices.map((price: any) => (
+        <li class="flex justify-between border-b pb-2">
+          <span>{price.carat}</span>
+          <span class="font-medium">₹{price.price} <span class="text-sm text-gray-500">({price.unit})</span></span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- Chart -->
+  <section class="bg-white shadow rounded-lg p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Gold Price Trend</h2>
+    {goldPrices.length > 0 && <GoldChart prices={goldPrices} />}
+  </section>
+
+  <!-- Historical Table -->
+  <section class="bg-white shadow rounded-lg p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Price History</h2>
+    <table class="w-full border-collapse border border-gray-200 text-sm">
+      <thead class="bg-gray-100">
         <tr>
-          <th>Carat</th>
-          <th>Price</th>
-          <th>Unit</th>
-          <th>Date</th>
+          <th class="border px-3 py-2 text-left">Date</th>
+          <th class="border px-3 py-2 text-left">24k</th>
+          <th class="border px-3 py-2 text-left">22k</th>
+          <th class="border px-3 py-2 text-left">18k</th>
         </tr>
       </thead>
       <tbody>
-        {entity?.gold_prices.map((price: Price) => (
+        {priceHistory.map((price: any) => (
           <tr>
-            <td>{price.carat}</td>
-            <td>₹{price.price}</td>
-            <td>{price.unit}</td>
-            <td>{price.date}</td>
+            <td class="border px-3 py-2">{price.date}</td>
+            <td class="border px-3 py-2">₹{price['24k']}</td>
+            <td class="border px-3 py-2">{price['22k']}</td>
+            <td class="border px-3 py-2">{price['18k']}</td>
           </tr>
         ))}
       </tbody>
     </table>
-  </body>
-</html>
+  </section>
+
+  <!-- SEO Content -->
+  {seoContent && rendered && (
+    <section class="bg-white shadow rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">{seoContent.data.title}</h2>
+      <rendered.Content />
+    </section>
+  )}
+
+  <!-- FAQs -->
+  {seoContent?.data.faqs && seoContent.data.faqs.length > 0 && (
+    <section class="bg-white shadow rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">FAQs</h2>
+      {seoContent.data.faqs.map((faq) => (
+        <details class="mb-3">
+          <summary class="cursor-pointer font-medium">{faq.question}</summary>
+          <p class="mt-2 text-gray-700">{faq.answer}</p>
+        </details>
+      ))}
+    </section>
+  )}
+</BaseLayout>

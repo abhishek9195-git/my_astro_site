@@ -1,7 +1,9 @@
 export interface Price {
-  carat?: string;       // for gold
+  carat_24k?: number;
+  carat_22k: number;
+  carat_18k: number;
+  carat_14k: number;       // for gold
   unit: string;         // "per_10g" or "per_kg"
-  price: number;
   date: string;
 }
 
