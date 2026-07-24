@@ -3,54 +3,94 @@ import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import "../styles/global.css";
 
-const { title = "My Astro Site", description = "Production grade Astro website" } = Astro.props;
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+}
+
+const {
+  title = "Gold Rates Today | Financial Market Updates",
+  description = "Get real-time 24K, 22K, and 18K gold rates, price history trends, and financial insights across major cities.",
+  canonicalUrl = Astro.url.href,
+  ogImage = "/og-default.png",
+} = Astro.props;
 ---
 
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0A1931" />
+
+    <!-- Primary Meta Tags -->
     <title>{title}</title>
+    <meta name="title" content={title} />
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
 
-    <!-- Google Ads / Analytics -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    <script>
-      {`(window.adsbygoogle = window.adsbygoogle || []).push({
-        google_ad_client: "ca-pub-XXXXXXX", // replace with your AdSense ID
-        enable_page_level_ads: true
-      });`}
-    </script>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.url)} />
 
-    <!-- Page-specific head content -->
+    <!-- Twitter Cards -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalUrl} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(ogImage, Astro.url)} />
+
+    <!-- Favicon & Fonts -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- AdSense Async Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXX" crossorigin="anonymous"></script>
+
     <slot name="head" />
   </head>
-  <body class="min-h-screen flex flex-col">
-    <!-- Header -->
+  <body class="min-h-screen flex flex-col  text-[#0A1931] font-sans antialiased selection:bg-[#0A1931] selection:text-white">
+    
+    <!-- Sticky Header Component -->
     <Header />
 
-    <!-- Main -->
-    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-12 gap-6">
-      <!-- Content -->
-      <section class="col-span-9">
-        <slot /> <!-- Page content -->
-      </section>
+    <!-- Main Wrapper -->
+    <main class="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      
+      <!-- Grid Layout for Main Content & Sidebar Ads -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Primary Content Area (Expanded to 8 or 9 Columns) -->
+        <section class="lg:col-span-8 xl:col-span-9 w-full min-w-0">
+          <slot /> <!-- City Page content inserts here -->
+        </section>
 
-      <!-- Sidebar Ads -->
-      <aside class="col-span-3">
-        <div class="mb-6">
-          <!-- Google AdSense block -->
-          <ins class="adsbygoogle"
-               style="display:block"
-               data-ad-client="ca-pub-XXXXXXX"
-               data-ad-slot="1234567890"
-               data-ad-format="auto"></ins>
-          <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
-      </aside>
+        <!-- Sidebar Sticky Ad Container (Allocated 3 to 4 Columns) -->
+        <aside class="lg:col-span-4 xl:col-span-3 w-full space-y-6 lg:sticky lg:top-24">
+          <div class="bg-white rounded-2xl p-4 border border-[#0A1931]/10 shadow-sm shadow-[#0A1931]/5 text-center overflow-hidden">
+            <span class="text-[10px] font-bold tracking-widest text-[#0A1931]/40 uppercase mb-2 block">Advertisement</span>
+            
+            <!-- Standard Sidebar Ad Container -->
+            <div class="min-h-[250px] sm:min-h-[600px] flex items-center justify-center bg-[#F6FAFD]/50 rounded-xl">
+              <ins class="adsbygoogle"
+                   style="display:block; width:100%;"
+                   data-ad-client="ca-pub-XXXXXXX"
+                   data-ad-slot="1234567890"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+              <script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+          </div>
+        </aside>
+
+      </div>
     </main>
 
-    <!-- Footer -->
+    <!-- Footer Component -->
     <Footer />
+    
   </body>
 </html>

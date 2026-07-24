@@ -2,11 +2,11 @@
 title: "Factors Affecting Gold Price in Mumbai"
 slug: "mumbai"
 faqs:
-  - question: "What is today’s gold rate in Delhi?"
+  - question: "What is the difference between 22K and 24K gold?"
     answer: "Today’s gold rate in Delhi is ₹6,000 for 22k per 10g."
-  - question: "How often are gold prices updated?"
+  - question: "Why does gold price change daily?"
     answer: "Prices are updated daily based on market fluctuations."
-  - question: "What is the difference between 22k and 24k gold?"
+  - question: "Is gold a safe investment during inflation?"
     answer: "22k gold contains 91.6% pure gold mixed with alloys, while 24k is 99.9% pure."
 ---
 

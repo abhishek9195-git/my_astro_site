@@ -1,0 +1,207 @@
+---
+import type { Price } from "../types";
+import { get_gold_price_history_by_slug_carat_and_days } from "../lib/api";
+
+interface Props {
+  slug: string;
+  carat: string;
+  number_of_days: number;
+  chartId: string; // unique per chart
+}
+
+const { slug, carat, number_of_days, chartId } = Astro.props;
+const prices: Price[] = await get_gold_price_history_by_slug_carat_and_days(
+  slug,
+  carat,
+  number_of_days
+);
+
+const labels: string[] = prices.map((p) => p.date);
+const dataPoints: number[] = prices.map((p) => p.price);
+---
+
+<div class="w-full chart-wrapper p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-md" data-chart-id={chartId}>
+  <!-- Header & Controls -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div>
+      <h3 class="text-sm font-medium uppercase tracking-wider text-slate-400">
+        {carat} Gold Price Trend
+      </h3>
+      <p class="text-xs text-slate-500 mt-0.5">Price per 10 grams (₹)</p>
+    </div>
+
+    <div class="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
+      <button 
+        id={`btn7-${chartId}`} 
+        class="chart-time-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 transition-all duration-200 hover:text-white data-[active=true]:bg-amber-500 data-[active=true]:text-slate-950 data-[active=true]:shadow-md"
+        data-active="true"
+      >
+        7 Days
+      </button>
+      <button 
+        id={`btn30-${chartId}`} 
+        class="chart-time-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 transition-all duration-200 hover:text-white data-[active=true]:bg-amber-500 data-[active=true]:text-slate-950 data-[active=true]:shadow-md"
+        data-active="false"
+      >
+        30 Days
+      </button>
+    </div>
+  </div>
+
+  <!-- Chart Area -->
+  <div class="relative w-full h-72">
+    <canvas
+      id={chartId}
+      class="block w-full h-full"
+      data-labels={JSON.stringify(labels)}
+      data-prices={JSON.stringify(dataPoints)}
+      data-carat={carat}
+    ></canvas>
+  </div>
+</div>
+
+<script>
+  import { Chart, registerables, type ScriptableContext } from "chart.js";
+  Chart.register(...registerables);
+
+  function createGradient(ctx: CanvasRenderingContext2D, isUpTrend: boolean) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    if (isUpTrend) {
+      gradient.addColorStop(0, "rgba(34, 197, 94, 0.35)");
+      gradient.addColorStop(1, "rgba(34, 197, 94, 0.0)");
+    } else {
+      gradient.addColorStop(0, "rgba(239, 68, 68, 0.35)");
+      gradient.addColorStop(1, "rgba(239, 68, 68, 0.0)");
+    }
+    return gradient;
+  }
+
+  function initCharts() {
+    const wrappers = document.querySelectorAll<HTMLElement>(".chart-wrapper");
+
+    wrappers.forEach((wrapper) => {
+      const chartId = wrapper.dataset.chartId;
+      if (!chartId) return;
+
+      const canvas = document.getElementById(chartId) as HTMLCanvasElement | null;
+      if (!canvas || canvas.dataset.initialized) return;
+
+      canvas.dataset.initialized = "true";
+
+      const labels = JSON.parse(canvas.getAttribute("data-labels") || "[]");
+      const dataPoints = JSON.parse(canvas.getAttribute("data-prices") || "[]");
+      const carat = canvas.getAttribute("data-carat") || "";
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return; // Early return ensures `ctx` is CanvasRenderingContext2D below
+
+      function getSlice(days: number) {
+        return {
+          labels: labels.slice(-days),
+          data: dataPoints.slice(-days),
+        };
+      }
+
+      let { labels: initLabels, data: initData } = getSlice(7);
+      const isUpTrend = initData.length > 1 ? initData[initData.length - 1] >= initData[0] : true;
+      const primaryColor = isUpTrend ? "#22c55e" : "#ef4444";
+
+      const chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: initLabels,
+          datasets: [
+            {
+              label: `${carat.toUpperCase()} Gold Price`,
+              data: initData,
+              borderColor: primaryColor,
+              borderWidth: 2.5,
+              backgroundColor: createGradient(ctx, isUpTrend),
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: primaryColor,
+              pointHoverBorderColor: "#0f172a",
+              pointHoverBorderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#1e293b",
+              titleColor: "#94a3b8",
+              bodyColor: "#f8fafc",
+              borderColor: "#334155",
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false,
+              callbacks: {
+                label: (context) => {
+                  const val = context.parsed?.y;
+                  if (val === null || val === undefined) return "";
+                  return `₹${val.toLocaleString("en-IN")}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: "#64748b",
+                font: { size: 11 },
+              },
+            },
+            y: {
+              grid: {
+                color: "rgba(51, 65, 85, 0.4)",
+              },
+              ticks: {
+                color: "#64748b",
+                font: { size: 11 },
+                callback: (val) => `₹${Number(val).toLocaleString("en-IN")}`,
+              },
+            },
+          },
+        },
+      });
+
+      const btn7 = document.getElementById(`btn7-${chartId}`);
+      const btn30 = document.getElementById(`btn30-${chartId}`);
+
+      function updateData(days: number, activeBtn: HTMLElement | null, inactiveBtn: HTMLElement | null) {
+        // Asserting ctx again inside closure to appease TypeScript strict mode
+        if (!ctx) return;
+
+        const { labels: newLabels, data: newData } = getSlice(days);
+        const upTrend = newData.length > 1 ? newData[newData.length - 1] >= newData[0] : true;
+        const color = upTrend ? "#22c55e" : "#ef4444";
+
+        chart.data.labels = newLabels;
+        chart.data.datasets[0].data = newData;
+        chart.data.datasets[0].borderColor = color;
+        chart.data.datasets[0].backgroundColor = createGradient(ctx, upTrend);
+        chart.data.datasets[0].pointHoverBackgroundColor = color;
+        chart.update();
+
+        activeBtn?.setAttribute("data-active", "true");
+        inactiveBtn?.setAttribute("data-active", "false");
+      }
+
+      btn7?.addEventListener("click", () => updateData(7, btn7, btn30));
+      btn30?.addEventListener("click", () => updateData(30, btn30, btn7));
+    });
+  }
+
+  initCharts();
+  document.addEventListener("astro:page-load", initCharts);
+</script>

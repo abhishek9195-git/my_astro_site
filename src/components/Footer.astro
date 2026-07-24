@@ -1,3 +1,67 @@
-<footer class="bg-gray-900 text-white text-center py-4 mt-auto">
-  <p>&copy; {new Date().getFullYear()} MySite. All rights reserved.</p>
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-[#0A1931] text-[#F6FAFD] border-t border-[#F6FAFD]/10 mt-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+      
+      <!-- Brand & Mission Column -->
+      <div class="space-y-4 md:col-span-1">
+        <a href="/" class="flex items-center gap-2 group text-xl font-black tracking-wider text-[#F6FAFD]">
+          <span class="w-8 h-8 rounded-lg bg-[#F6FAFD]/10 border border-[#F6FAFD]/20 flex items-center justify-center group-hover:bg-[#F6FAFD] group-hover:text-[#0A1931] transition-all duration-300">
+            <svg class="w-5 h-5 text-amber-400 group-hover:text-[#0A1931]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </span>
+          <span class="font-extrabold tracking-tight">MySite</span>
+        </a>
+        <p class="text-xs text-[#F6FAFD]/70 leading-relaxed">
+          Your trusted source for live market updates, gold rate analysis, financial insights, and commodity trends.
+        </p>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-[#F6FAFD]">Quick Navigation</h3>
+        <ul class="space-y-2 text-xs text-[#F6FAFD]/70">
+          <li><a href="/" class="hover:text-[#F6FAFD] transition-colors">Home</a></li>
+          <li><a href="/gold-rates" class="hover:text-[#F6FAFD] transition-colors">Gold Rates Today</a></li>
+          <li><a href="/news" class="hover:text-[#F6FAFD] transition-colors">Market News</a></li>
+          <li><a href="/contact" class="hover:text-[#F6FAFD] transition-colors">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <!-- Financial Markets -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-[#F6FAFD]">Markets</h3>
+        <ul class="space-y-2 text-xs text-[#F6FAFD]/70">
+          <li><a href="/markets/stocks" class="hover:text-[#F6FAFD] transition-colors">Stocks & Equities</a></li>
+          <li><a href="/markets/mutual-funds" class="hover:text-[#F6FAFD] transition-colors">Mutual Funds</a></li>
+          <li><a href="/markets/gold" class="hover:text-[#F6FAFD] transition-colors">Gold & Bullion</a></li>
+          <li><a href="/markets/ipo" class="hover:text-[#F6FAFD] transition-colors">Upcoming IPOs</a></li>
+        </ul>
+      </div>
+
+      <!-- Newsletter / Disclaimer -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-[#F6FAFD]">Market Disclaimer</h3>
+        <p class="text-[11px] text-[#F6FAFD]/60 leading-relaxed">
+          Prices and rates displayed are for informational purposes only. Always consult a financial advisor before making investment decisions.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="pt-8 mt-8 border-t border-[#F6FAFD]/10 flex flex-col sm:flex-row items-center justify-between text-xs text-[#F6FAFD]/60 gap-4">
+      <p>&copy; {currentYear} <span class="font-semibold text-[#F6FAFD]">MySite</span>. All rights reserved.</p>
+      
+      <div class="flex space-x-6">
+        <a href="/privacy-policy" class="hover:text-[#F6FAFD] transition-colors">Privacy Policy</a>
+        <a href="/terms" class="hover:text-[#F6FAFD] transition-colors">Terms of Service</a>
+        <a href="/sitemap.xml" class="hover:text-[#F6FAFD] transition-colors">Sitemap</a>
+      </div>
+    </div>
+  </div>
 </footer>

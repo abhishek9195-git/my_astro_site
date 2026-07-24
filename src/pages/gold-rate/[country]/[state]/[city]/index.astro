@@ -1,0 +1,251 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../../../layouts/BaseLayout.astro";
+import Breadcrumb from "../../../../../components/Breadcrumb.astro";
+import GoldComparisonTable from "../../../../../components/GoldComparisonTable.astro";
+import GoldProsCons from "../../../../../components/GoldProsCons.astro";
+import GenericChart from '../../../../../components/GenericChart.astro';
+
+import type { Country, City, Price, State } from '../../../../../types';
+import { get_cities_by_state_slug, get_latest_gold_price_by_slug, get_states_by_country_slug } from '../../../../../lib/api';
+import { getCollection, render } from "astro:content";
+
+const { country, state, city } = Astro.params;
+const slug = city || "";
+
+// Helper for display formatting
+const capitalize = (str?: string) => 
+  str ? str.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) : "";
+
+const cityNameFormatted = capitalize(city);
+const stateNameFormatted = capitalize(state);
+
+const LATEST_GOLD_PRICE = (await get_latest_gold_price_by_slug(slug)) as Price[] || [];
+const LIST_OF_CITIES = (await get_cities_by_state_slug(state || "")) as City[] || [];
+const LIST_OF_STATES = (await get_states_by_country_slug(country || "")) as State[] || [];
+
+export async function getStaticPaths() {
+  const URL = `${import.meta.env.PUBLIC_API_URL}/location/countries`;
+  const response = await fetch(URL);
+  const countries = (await response.json()) as Country[];
+
+  const paths = [];
+  for (const c of countries) {
+    for (const s of c.states) {
+      for (const ct of s.cities) {
+        paths.push({
+          params: {
+            country: c.slug,
+            state: s.slug,
+            city: ct.slug,
+          },
+        });
+      }
+    }
+  }
+
+  return paths;
+}
+
+// Load SEO Markdown content
+const seoContent = (await getCollection("gold-rates")).find((entry) => entry.data.slug === slug);
+let rendered;
+if (seoContent) {
+  rendered = await render(seoContent);
+}
+
+// Load Gold FAQ
+const faqContent = (await getCollection("gold-faq")).find(
+  (entry) => entry.data.slug === "gold-faq-slug"
+);
+
+const formattedDate = LATEST_GOLD_PRICE[0]?.date
+  ? new Date(LATEST_GOLD_PRICE[0].date).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  : "Today";
+---
+
+<BaseLayout title={`Gold Rates in ${cityNameFormatted}, ${stateNameFormatted}`}>
+  <!-- Main Page Container with #F6FAFD background -->
+
+      <!-- Breadcrumb Header -->
+    <nav class="opacity-90">
+      <Breadcrumb breadcrumbs={["gold-rate", country || "", state || "", city || ""]} />
+    </nav>
+  <div class="max-w-6xl mx-auto rounded-3xl px-4 py-3 space-y-10 bg-[#F6FAFD] text-[#0A1931] min-h-screen">
+    
+
+
+    <!-- Hero Header -->
+    <header class="relative overflow-hidden rounded-3xl bg-white p-8 border border-[#0A1931]/10 shadow-sm shadow-[#0A1931]/5">
+      <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-[#0A1931]/5 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="relative z-10 space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A1931]/5 border border-[#0A1931]/10 text-[#0A1931] text-xs font-semibold uppercase tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Live Market Update
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#0A1931]">
+          Gold Rate Today in <span class="opacity-80">{cityNameFormatted}</span>
+        </h1>
+
+        <p class="text-sm opacity-70 font-medium">
+          Last updated on <time class="font-bold">{formattedDate}</time>
+        </p>
+      </div>
+    </header>
+
+    <!-- Dynamic Price Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {
+        LATEST_GOLD_PRICE.map(({ price, carat, unit }) => (
+          <div class="group relative overflow-hidden rounded-2xl bg-white border border-[#0A1931]/10 p-6 shadow-sm shadow-[#0A1931]/5 hover:shadow-md hover:shadow-[#0A1931]/10 transition-all duration-300 hover:-translate-y-1 hover:border-[#0A1931]/20">
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-[#0A1931]/5 text-[#0A1931] border border-[#0A1931]/10">
+                {carat} Gold
+              </span>
+              <span class="text-xs opacity-60 font-medium">{unit}</span>
+            </div>
+            
+            <div class="text-3xl font-black text-[#0A1931] group-hover:opacity-90 transition-colors">
+              ₹{Number(price).toLocaleString("en-IN")}
+            </div>
+
+            <div class="mt-2 text-xs opacity-70 flex items-center gap-1 font-medium">
+              <span>Standard Bullion Rate</span>
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- Overview Card -->
+    <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5">
+      <h2 class="text-2xl font-bold text-[#0A1931] mb-4 flex items-center gap-2.5">
+        <span class="w-2 h-6 bg-[#0A1931] rounded-full inline-block"></span>
+        Overview of {cityNameFormatted}'s Gold Rate Today
+      </h2>
+      <p class="opacity-80 leading-relaxed text-base">
+        In <strong class="text-[#0A1931] font-bold">{cityNameFormatted}</strong>, today’s 24K gold price is 
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE[0]?.price}</span> per {LATEST_GOLD_PRICE[0]?.unit}, 
+        reflecting current investment trends. 22K gold stands at 
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE[1]?.price}</span> per {LATEST_GOLD_PRICE[1]?.unit} 
+        as the primary choice for jewelry, alongside 18K gold at 
+        <span class="text-[#0A1931] font-bold">₹{LATEST_GOLD_PRICE[2]?.price}</span> per {LATEST_GOLD_PRICE[2]?.unit}.
+      </p>
+    </section>
+
+    <!-- Purity Specific Details & Interactive Charts -->
+    <div class="space-y-8">
+      <!-- 24K Gold -->
+      <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-[#0A1931] mb-2">24K Gold Price Trend in {cityNameFormatted}</h2>
+          <p class="opacity-75 text-sm leading-relaxed">
+            The purest form of gold (99.9%), 24K is valued at ₹{LATEST_GOLD_PRICE[0]?.price} per gram in {cityNameFormatted}. Ideal for bullion coins, bars, and long-term investment portfolios.
+          </p>
+        </div>
+        <GenericChart slug={slug} carat={'24k'} number_of_days={7} chartId="chart24k"/>
+      </section>
+
+      <!-- 22K Gold -->
+      <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-[#0A1931] mb-2">22K Gold Price Trend in {cityNameFormatted}</h2>
+          <p class="opacity-75 text-sm leading-relaxed">
+            22K gold in {cityNameFormatted} is ₹{LATEST_GOLD_PRICE[1]?.price} per gram. Alloyed with metals like copper or silver for durability, it's preferred for everyday jewelry and ornaments.
+          </p>
+        </div>
+        <GenericChart slug={slug} carat={'22k'} number_of_days={7} chartId="chart22k"/>
+      </section>
+
+      <!-- 18K Gold -->
+      <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-[#0A1931] mb-2">18K Gold Price Trend in {cityNameFormatted}</h2>
+          <p class="opacity-75 text-sm leading-relaxed">
+            Valued at ₹{LATEST_GOLD_PRICE[2]?.price} per gram in {cityNameFormatted}, 18K gold provides an affordable yet durable balance for diamond-studded and modern lifestyle jewelry.
+          </p>
+        </div>
+        <GenericChart slug={slug} carat={'18k'} number_of_days={7} chartId="chart18k"/>
+      </section>
+    </div>
+
+    <!-- Comparison Table & Pros/Cons -->
+    <div class="space-y-8">
+      <GoldComparisonTable data={''} />
+      <GoldProsCons />
+    </div>
+
+    <!-- SEO Content Section -->
+    {seoContent && rendered && (
+      <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 text-[#0A1931] prose max-w-none">
+        <h2 class="text-2xl font-bold text-[#0A1931] mb-4">{seoContent.data.title}</h2>
+        <rendered.Content />
+      </section>
+    )}
+
+    <!-- FAQ Section -->
+    {faqContent?.data.faqs && (
+      <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-4">
+        <h2 class="text-2xl font-bold text-[#0A1931] mb-6">{faqContent.data.title}</h2>
+        <div class="space-y-3">
+          {faqContent.data.faqs.map((faq) => (
+            <details class="group border border-[#0A1931]/10 bg-[#F6FAFD]/60 rounded-xl transition-all duration-200 [&[open]]:bg-[#F6FAFD]">
+              <summary class="cursor-pointer font-semibold text-[#0A1931] p-4 flex justify-between items-center select-none">
+                <span>{faq.question}</span>
+                <span class="opacity-60 transition-transform group-open:rotate-180">↓</span>
+              </summary>
+              <div class="px-4 pb-4 opacity-80 text-sm leading-relaxed border-t border-[#0A1931]/10 pt-3">
+                {faq.answer}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Navigation Pills: Cities -->
+    {
+      LIST_OF_CITIES.length > 0 && (
+        <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-4">
+          <h2 class="text-lg font-bold text-[#0A1931]">Explore Gold Rates by other cities in {stateNameFormatted}</h2>
+          <div class="flex flex-wrap gap-2.5">
+            {LIST_OF_CITIES.map(({ slug: citySlug, name }) => (
+              <a
+                href={`/gold-rate/${country}/${state}/${citySlug}`}
+                class="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#F6FAFD] text-[#0A1931] border border-[#0A1931]/15 hover:border-[#0A1931]/40 hover:bg-[#0A1931] hover:text-white transition-all duration-200"
+              >
+                {name}
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- Navigation Pills: States -->
+    {
+      LIST_OF_STATES.length > 0 && (
+        <section class="rounded-2xl bg-white border border-[#0A1931]/10 p-6 sm:p-8 shadow-sm shadow-[#0A1931]/5 space-y-4">
+          <h2 class="text-lg font-bold text-[#0A1931]">Explore Gold Rates across other states in {capitalize(country)}</h2>
+          <div class="flex flex-wrap gap-2.5">
+            {LIST_OF_STATES.map(({ slug: stateSlug, name }) => (
+              <a
+                href={`/gold-rate/${country}/${stateSlug}`}
+                class="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#F6FAFD] text-[#0A1931] border border-[#0A1931]/15 hover:border-[#0A1931]/40 hover:bg-[#0A1931] hover:text-white transition-all duration-200"
+              >
+                {name}
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+  </div>
+</BaseLayout>
